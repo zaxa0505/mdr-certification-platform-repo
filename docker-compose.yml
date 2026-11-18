@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: mdr_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mdr_platform
+      POSTGRES_USER: mdr_user
+      POSTGRES_PASSWORD: mdr_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  backend:
+    build:
+      context: ./backend
+    container_name: mdr_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://mdr_user:mdr_password@postgres:5432/mdr_platform
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
